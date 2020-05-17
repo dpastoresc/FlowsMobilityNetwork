@@ -1,0 +1,117 @@
+# coding: utf-8
+
+# In[1]:
+
+# DELIVERABLE FOR THE PROJECT:
+# "MOBILITY KINEMATICS"
+# David Pastor-Escuredo
+# with LifeD Lab
+# Copyright <2018-2019> <David Pastor Escuredo>
+
+#Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+#The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# THIS FILE
+# READS TRAJECTORIES
+
+#imports
+import pandas as pd
+import numpy as np
+#from nltk.tokenize import word_tokenize
+import re
+#import networkx as nx
+import matplotlib.pyplot as plt
+import datetime
+import collections
+from sklearn.cluster import KMeans
+#import plotly.plotly as py
+#import plotly.graph_objs as go
+import matplotlib.mlab as mlab
+import os
+import codecs
+#import pymysql
+import networkx as nx
+import pickle
+import csv
+import gzip
+import json
+import time
+from datetime import datetime, timedelta, date
+from os import listdir
+from os.path import isfile, join
+from timeit import default_timer as timer
+
+#Create a descriptor vector from the net values of the trajectories
+region='_bogota'
+
+datapath='/home/davidpastor/TEF_mob/'
+
+netpath=datapath+'nets/'
+netdescpath=datapath+'nets_desc/'
+trajpath=datapath+'trajs/'
+trajdesc=datapath+'traj_net/'
+
+UD={}
+
+for yDay in range(13,18):
+    
+    with open(trajpath+'usersTracking'+'_'+str(yDay)+'.tff', 'rb') as fpp:
+        usersTracking=pickle.load(fpp)
+    
+    with open(netdescpath+'ND'+'_'+str(yDay)+region+'.cnf', 'rb') as fpp:
+        GD=pickle.load(fpp)
+        
+    with open(netdescpath+'NDcf'+'_'+str(yDay)+region+'.cnf', 'rb') as fpp:
+        GDcf=pickle.load(fpp)    
+        
+    #with open(netpath+'Net2c'+'_'+str(yDay)+region+'.cnf', 'rb') as fpp:
+    #    G=pickle.load(fpp)
+        
+    for u in usersTracking:
+        avisited=usersTracking[u]['ss']
+        tvisited=usersTracking[u]['ts']
+        if u not in UD:
+            UD[u]={}
+            UD[u]['ind']=[]
+            UD[u]['outd']=[]
+            UD[u]['in_degree']=[]
+            UD[u]['out_degree']=[]
+            UD[u]['in_eigenvalue']=[]
+            UD[u]['out_eigenvalue']=[]
+            UD[u]['in_betweenness']=[]
+            UD[u]['out_betweenness']=[]
+            UD[u]['dis_betweenness']=[]
+            UD[u]['cfbetweenness']=[]
+            UD[u]['in_closeness']=[]
+            UD[u]['out_closeness']=[]
+            UD[u]['dis_closeness']=[]
+            UD[u]['cfcloseness']=[]  
+            UD[u]['time']=[]
+            UD[u]['position']=[]
+                       
+        for i in range(1, len(avisited)+1):
+            aid=avisited[i]    
+            if aid in GD and aid in GDcf:#we impose this double condition
+                UD[u]['ind'].append(GD[aid]['ind'])
+                UD[u]['outd'].append(GD[aid]['outd'])
+                UD[u]['in_degree'].append(GD[aid]['in_degree'])
+                UD[u]['out_degree'].append(GD[aid]['out_degree'])
+                UD[u]['in_eigenvalue'].append(GD[aid]['in_eigenvalue'])
+                UD[u]['out_eigenvalue'].append(GD[aid]['out_eigenvalue'])  
+                UD[u]['in_betweenness'].append(GD[aid]['in_betweenness'])
+                UD[u]['out_betweenness'].append(GD[aid]['out_betweenness'])
+                UD[u]['dis_betweenness'].append(GD[aid]['dis_betweenness'])
+                UD[u]['cfbetweenness'].append(GDcf[aid]['cfbetweenness'])
+                UD[u]['in_closeness'].append(GD[aid]['in_closeness'])
+                UD[u]['out_closeness'].append(GD[aid]['out_closeness'])
+                UD[u]['dis_closeness'].append(GD[aid]['dis_closeness'])
+                UD[u]['cfcloseness'].append(GDcf[aid]['cfcloseness'])
+                UD[u]['time'].append(tvisited[i])
+                UD[u]['position'].append(aid)
+    del usersTracking
+                            
+with open(trajdesc+'UD'+'.cnf', 'wb') as handle:
+    pickle.dump(UD, handle, protocol=pickle.HIGHEST_PROTOCOL) 
