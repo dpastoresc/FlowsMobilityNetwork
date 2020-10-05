@@ -1,1 +1,13 @@
 data
+
+ND_descriptors_bogota.csv
+ND_descriptors_medellin.csv
+
+Net2refc_bogota_th1.cnf
+
+Net2refc_medellin_th1.cnf
+Netu2refc_bogota_th1.cnf
+Netu2refc_medellin_th1.cnf
+
+sites_random.csv
+sites_random2.csv
